@@ -1,0 +1,118 @@
+version: "3"
+
+include:
+  - docker-compose-multimedia.yml
+
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+      - portainer-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    profiles:
+      - infra
+
+  home-assistant:
+    container_name: home-assistant
+    image: homeassistant/home-assistant:stable
+    restart: unless-stopped
+    profiles:
+      - domotica
+    privileged: true
+    network_mode: host
+    volumes:
+      - type: bind
+        source: config/homeassistant
+        target: /config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    depends_on:
+      - mariadb
+      - influxdb
+      - mosquitto
+      - zigbee2mqtt
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb
+    profiles:
+      - domotica
+    restart: unless-stopped
+    ports:
+      - "3306:3306/tcp"
+    environment:
+      - TZ=Europe/Brussels
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_HA_DATABASE}
+      - MYSQL_USER=${MYSQL_HA_USER}
+      - MYSQL_PASSWORD=${MYSQL_HA_PASSWORD}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - type: bind
+        source: config/mariadb
+        target: /etc/mysql/conf.d
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb
+    profiles:
+      - domotica
+    restart: unless-stopped
+    ports:
+      - "8086:8086/tcp"   # So we can access the WebUI
+    environment:
+      - TZ=Europe/Brussels
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USER}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - type: bind
+        source: config/influxdb
+        target: /etc/influxdb2
+
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto
+    restart: unless-stopped
+    profiles:
+      - domotica
+    ports:
+      - "1883:1883/tcp"
+    environment:
+      - TZ=Europe/Brussels
+    volumes:
+      - type: bind
+        source: config/mosquitto
+        target: /mosquitto/config
+      - mosquitto-data:/mosquitto/data
+    stdin_open: true
+    tty: true
+
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt:latest
+    container_name: zigbee2mqtt
+    profiles:
+      - domotica
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - ./config/zigbee2mqtt:/app/data
+      - /run/udev:/run/udev:ro
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0:rwm"
+    environment:
+      TZ: Europa/Amsterdam
+
+# Persistent data volumes
+volumes:
+  portainer-data:
+  mariadb-data:
+  influxdb-data:
+  mosquitto-data:

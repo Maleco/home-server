@@ -1,1 +1,8 @@
 .idea
+log
+
+# Home assistant
+home-assistant.log*
+home-assistant_v2.db*
+**/homeassistant/.storage
+
