@@ -1,0 +1,15 @@
+mqtt:
+  enabled: False
+
+cameras:
+  schuur: # <------ Name the camera
+    ffmpeg:
+      hwaccel_args: preset-vaapi
+      inputs:
+        - path: rtsp://192.168.178.9:554/rtsp # <----- The stream you want to use for detection
+          roles:
+            - detect
+    detect:
+      enabled: False # <---- disable detection until you have a working camera feed
+      width: 1280 # <---- update for your camera's resolution
+      height: 720 # <---- update for your camera's resolution

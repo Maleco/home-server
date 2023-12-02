@@ -1,5 +1,8 @@
 version: "3"
 
+include:
+  - docker-compose-frigate.yml
+
 services:
   portainer:
     container_name: portainer

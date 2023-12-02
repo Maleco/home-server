@@ -16,3 +16,9 @@ domotica/start: config/mosquitto config/mariadb config/influxdb config/homeassis
 
 domotica/stop:
 	docker compose --profile domotica down
+
+frigate/up:
+	docker compose --profile frigate up --build -d
+
+frigate/down:
+	docker compose --profile frigate down
