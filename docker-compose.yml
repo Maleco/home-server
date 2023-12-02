@@ -1,8 +1,5 @@
 version: "3"
 
-include:
-  - docker-compose-multimedia.yml
-
 services:
   portainer:
     container_name: portainer
@@ -31,30 +28,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
     depends_on:
-      - mariadb
       - influxdb
       - mosquitto
       - zigbee2mqtt
-
-  mariadb:
-    container_name: mariadb
-    image: mariadb
-    profiles:
-      - domotica
-    restart: unless-stopped
-    ports:
-      - "3306:3306/tcp"
-    environment:
-      - TZ=Europe/Brussels
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_HA_DATABASE}
-      - MYSQL_USER=${MYSQL_HA_USER}
-      - MYSQL_PASSWORD=${MYSQL_HA_PASSWORD}
-    volumes:
-      - mariadb-data:/var/lib/mysql
-      - type: bind
-        source: config/mariadb
-        target: /etc/mysql/conf.d
 
   influxdb:
     container_name: influxdb
@@ -113,6 +89,5 @@ services:
 # Persistent data volumes
 volumes:
   portainer-data:
-  mariadb-data:
   influxdb-data:
   mosquitto-data:
