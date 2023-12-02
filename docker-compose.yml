@@ -15,6 +15,23 @@ services:
     restart: unless-stopped
     profiles:
       - infra
+  nginx-proxy-manager:
+    container_name: nginx-proxy-manager
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/bin/check-health"]
+      interval: 10s
+      timeout: 3s
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - nginx-proxy-data:/data
+      - letsencrypt:/etc/letsencrypt
+    profiles:
+      - infra
 
   home-assistant:
     container_name: home-assistant
@@ -24,6 +41,8 @@ services:
       - domotica
     privileged: true
     network_mode: host
+    ports:
+      - 8123:8123
     volumes:
       - type: bind
         source: config/homeassistant
@@ -31,30 +50,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
     depends_on:
-      - mariadb
       - influxdb
       - mosquitto
       - zigbee2mqtt
-
-  mariadb:
-    container_name: mariadb
-    image: mariadb
-    profiles:
-      - domotica
-    restart: unless-stopped
-    ports:
-      - "3306:3306/tcp"
-    environment:
-      - TZ=Europe/Brussels
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_HA_DATABASE}
-      - MYSQL_USER=${MYSQL_HA_USER}
-      - MYSQL_PASSWORD=${MYSQL_HA_PASSWORD}
-    volumes:
-      - mariadb-data:/var/lib/mysql
-      - type: bind
-        source: config/mariadb
-        target: /etc/mysql/conf.d
 
   influxdb:
     container_name: influxdb
@@ -113,6 +111,11 @@ services:
 # Persistent data volumes
 volumes:
   portainer-data:
-  mariadb-data:
   influxdb-data:
   mosquitto-data:
+  nginx-proxy-data:
+  letsencrypt:
+
+networks:
+  default:
+    name: scoobydoo

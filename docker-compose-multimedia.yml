@@ -1,0 +1,50 @@
+version: "3"
+
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    profiles:
+      - multimedia
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - sonarr-data:/config
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    profiles:
+      - multimedia
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - radarr-data:/config
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    profiles:
+      - multimedia
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - sabnzbd-data:/config
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+volumes:
+  sonarr-data:
+  radarr-data:
+  sabnzbd-data:
