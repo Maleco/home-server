@@ -18,11 +18,32 @@ services:
     profiles:
       - infra
 
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+#      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
+      - "80:80/tcp"
+    environment:
+      TZ: 'Europe/Amsterdam'
+      # WEBPASSWORD: 'set a secure password here or it will be random'
+    # Volumes store your data between container upgrades
+    volumes:
+      - config/pihole/etc-pihole:/etc/pihole'
+      - config/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    restart: unless-stopped
+
   omada:
     container_name: omada
     image: mbentley/omada-controller:latest
     profiles:
       - network
+
+
 
   home-assistant:
     container_name: home-assistant
