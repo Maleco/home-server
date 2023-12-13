@@ -2,6 +2,7 @@ version: "3"
 
 include:
   - docker-compose-frigate.yml
+  - docker-compose-media.yml
 
 services:
   portainer:
