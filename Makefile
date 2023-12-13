@@ -11,6 +11,9 @@ config/homeassistant:
 config/influxdb:
 	[ ! -d "config/influxdb/" ] && mkdir config/influxdb;
 
+infra/up:
+	docker compose --profile infra up --build -d
+
 domotica/start: config/mosquitto config/mariadb config/influxdb config/homeassistant
 	docker compose --profile domotica up --build -d
 

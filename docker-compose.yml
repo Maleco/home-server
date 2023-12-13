@@ -8,6 +8,7 @@ services:
     container_name: portainer
     image: portainer/portainer-ce:latest
     ports:
+      - 9000:9000
       - 9443:9443
     volumes:
       - portainer-data:/data
@@ -15,6 +16,9 @@ services:
     restart: unless-stopped
     profiles:
       - infra
+
+  omada:
+    container_name: omada
 
   home-assistant:
     container_name: home-assistant
