@@ -19,6 +19,9 @@ services:
 
   omada:
     container_name: omada
+    image: mbentley/omada-controller:latest
+    profiles:
+      - network
 
   home-assistant:
     container_name: home-assistant
