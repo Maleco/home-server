@@ -36,6 +36,8 @@ services:
       - config/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
     #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
     restart: unless-stopped
+    profile:
+      - infra
 
   omada:
     container_name: omada
