@@ -25,3 +25,15 @@ frigate/up:
 
 frigate/down:
 	docker compose --profile frigate down
+
+infra/up:
+	docker compose --profile infra up --build -d
+
+infra/down:
+	docker compose --profile infra down
+
+media/up:
+	docker compose --profile media up --build -d
+
+media/down:
+	docker compose --profile media down
