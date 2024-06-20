@@ -1,1 +1,440 @@
-[]
+- id: '1594111171284'
+  alias: Avondverlichting
+  description: ''
+  trigger:
+  - event: sunset
+    platform: sun
+  condition: []
+  action:
+  - data: {}
+    service: light.turn_on
+    target:
+      area_id:
+      - hal
+      - huiskamer
+      - keuken
+      - tuin
+      - tv_hoek
+  - service: switch.turn_on
+    target:
+      entity_id:
+      - switch.lamp_staand
+      - switch.lamp_bol
+    data: {}
+  mode: single
+- id: '1594111832019'
+  alias: RFBridge
+  description: ''
+  trigger:
+  - platform: mqtt
+    topic: tele/sonoff_rf/RESULT
+  condition: []
+  action:
+  - service: python_script.rfbridge_demux
+    data_template:
+      payload: '{{ trigger.payload_json.RfReceived.Data }}'
+- id: 0000000000009
+  alias: Afval - reset wegzetten
+  trigger:
+  - entity_id: input_boolean.waste_moved
+    for: '12:00:00'
+    platform: state
+    to: 'on'
+  action:
+  - entity_id: input_boolean.waste_moved
+    service: input_boolean.turn_off
+  - entity_id: input_boolean.waste_reminder
+    service: input_boolean.turn_on
+  mode: single
+- id: 0000000000008
+  alias: Afval - herinnering wegzetten
+  trigger:
+  - hours: 1
+    minutes: 30
+    platform: time_pattern
+    seconds: '0'
+  condition:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.waste_moved
+      state: 'off'
+    - condition: state
+      entity_id: input_boolean.waste_reminder
+      state: 'on'
+    - after: '21:00:00'
+      before: 00:00:00
+      condition: time
+    - condition: template
+      value_template: '{{ states(''sensor.afvalwijzer_tomorrow'') != ''Geen'' }}'
+  action:
+  - data:
+      data:
+        push:
+          badge: 0
+          category: afval
+      message: 'Het is vandaag - {{ now().strftime("%d-%m-%Y") }}. Afvaltype(n): {{
+        states.sensor.afvalwijzer_tomorrow_formatted.state }} wordt opgehaald op:
+        {{ (as_timestamp(now()) + (24*3600)) | timestamp_custom("%d-%m-%Y", True)
+        }}!'
+      title: Afval
+    service: notify.mobile_app_mi_9
+  - data:
+      data:
+        push:
+          badge: 0
+          category: afval
+      message: 'Het is vandaag - {{ now().strftime("%d-%m-%Y") }}. Afvaltype(n): {{
+        states.sensor.afvalwijzer_tomorrow_formatted.state }} wordt opgehaald op:
+        {{ (as_timestamp(now()) + (24*3600)) | timestamp_custom("%d-%m-%Y", True)
+        }}!'
+      title: Afval
+    service: notify.mobile_app_sm_g955f
+  mode: single
+- id: '1601993725550'
+  alias: 'Deur hal open '
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: eef608448e3ca0052a446edc48a857b8
+    entity_id: binary_sensor.deur_woonkamer
+    domain: binary_sensor
+  condition:
+  - condition: state
+    entity_id: light.lamp_hal
+    state: 'on'
+  action:
+  - data:
+      brightness_pct: 100
+      transition: 2
+    service: light.turn_on
+    target:
+      entity_id: light.lamp_hal
+  mode: single
+- id: '1601993859570'
+  alias: 'Deur hal dicht '
+  description: ''
+  trigger:
+  - type: not_opened
+    platform: device
+    device_id: eef608448e3ca0052a446edc48a857b8
+    entity_id: binary_sensor.deur_woonkamer
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  condition:
+  - condition: state
+    state: 'on'
+    entity_id: light.lamp_hal
+  action:
+  - service: light.turn_on
+    data:
+      brightness_pct: 1
+      transition: 300
+    target:
+      entity_id: light.lamp_hal
+  mode: single
+- id: '1603555538547'
+  alias: Aquarium aan
+  description: ''
+  trigger:
+  - event: sunrise
+    platform: sun
+  condition: []
+  action:
+  - data: {}
+    entity_id: switch.verlichting_aquarium
+    service: switch.turn_on
+  mode: single
+- id: '1603555634759'
+  alias: Aquarium uit
+  description: ''
+  trigger:
+  - event: sunset
+    platform: sun
+  condition: []
+  action:
+  - data: {}
+    entity_id: switch.verlichting_aquarium
+    service: switch.turn_off
+  mode: single
+- id: '1603980993981'
+  alias: Lamp sluis aan
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: 0b9656505612d9a2ecec042e758df457
+    entity_id: binary_sensor.deur_sluis
+    domain: binary_sensor
+  - type: opened
+    platform: device
+    device_id: bc9257f4fa28114cc044d365a92fafd1
+    entity_id: binary_sensor.deur_garage
+    domain: binary_sensor
+  condition: []
+  action:
+  - data:
+      transition: 5
+      brightness_pct: 100
+    service: light.turn_on
+    target:
+      entity_id: light.lamp_sluis
+  mode: single
+- id: '1603982101067'
+  alias: Lamp sluis uit
+  description: ''
+  trigger:
+  - type: not_opened
+    platform: device
+    device_id: 0b9656505612d9a2ecec042e758df457
+    entity_id: binary_sensor.deur_sluis
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  - type: not_opened
+    platform: device
+    device_id: bc9257f4fa28114cc044d365a92fafd1
+    entity_id: binary_sensor.deur_garage
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  condition:
+  - condition: and
+    conditions:
+    - type: is_not_open
+      condition: device
+      device_id: 0b9656505612d9a2ecec042e758df457
+      entity_id: binary_sensor.deur_sluis
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+        milliseconds: 0
+    - type: is_not_open
+      condition: device
+      device_id: bc9257f4fa28114cc044d365a92fafd1
+      entity_id: binary_sensor.deur_garage
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+        milliseconds: 0
+  action:
+  - data:
+      transition: 5
+    service: light.turn_off
+    target:
+      entity_id: light.lamp_sluis
+  mode: single
+- id: '1631042664166'
+  alias: Remote1 On
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 044e30a4497dfa2511b45f5c11a0cdb0
+    type: click
+    subtype: 'on'
+    discovery_id: 0xcc86ecfffe9b6552 click_on
+  condition: []
+  action:
+  - service: light.turn_on
+    data:
+      brightness_step_pct: 20
+    target:
+      entity_id: light.0x84fd27fffeaac6dd
+  mode: single
+- id: '1631042745918'
+  alias: Remote1 off
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 044e30a4497dfa2511b45f5c11a0cdb0
+    type: click
+    subtype: 'off'
+    discovery_id: 0xcc86ecfffe9b6552 click_off
+  condition: []
+  action:
+  - service: light.turn_off
+    target:
+      entity_id: light.0x84fd27fffeaac6dd
+  mode: single
+- id: '1633384460552'
+  alias: Lampen uit - Niemand thuis
+  description: ''
+  trigger:
+  - platform: time
+    at: '23:59:00'
+  condition:
+  - condition: and
+    conditions:
+    - condition: not
+      conditions:
+      - condition: zone
+        entity_id: person.maikel
+        zone: zone.home
+    - condition: not
+      conditions:
+      - condition: zone
+        entity_id: person.harieke
+        zone: zone.home
+  action:
+  - service: light.turn_off
+    target:
+      area_id:
+      - huiskamer
+      - tv_hoek
+      - tuin
+      entity_id:
+      - light.led_keuken
+      - light.lamp_achterdeur
+      - light.hanglampen_woonkamer
+      - light.lamp_lotte
+      - light.lamp_sluis
+    data: {}
+  mode: single
+- id: '1634057979620'
+  alias: Big Remote 1 toggle
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 169b97b755043aa9f800cdd6a89b747b
+    type: action
+    subtype: toggle
+    discovery_id: 0xd0cf5efffec16fa0 action_toggle
+  condition: []
+  action:
+  - service: light.toggle
+    target:
+      entity_id:
+      - light.hanglamp_aquarium
+      - light.lamp_staand
+      - light.eethoek
+      - light.lamp_lotte
+    data: {}
+  mode: single
+- id: '1634058078797'
+  alias: Big Remote 1 Brightness down
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 169b97b755043aa9f800cdd6a89b747b
+    type: action
+    subtype: brightness_down_click
+    discovery_id: 0xd0cf5efffec16fa0 action_brightness_down_click
+  condition: []
+  action:
+  - service: light.turn_on
+    data:
+      brightness_step_pct: -20
+    target:
+      entity_id:
+      - light.eethoek
+      - light.lamp_lotte
+      - light.lamp_staand
+      - light.hanglamp_aquarium
+  mode: single
+- id: '1634058149503'
+  alias: Big Remote 1 Brightness up
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 169b97b755043aa9f800cdd6a89b747b
+    type: action
+    subtype: brightness_up_click
+    discovery_id: 0xd0cf5efffec16fa0 action_brightness_up_click
+  condition: []
+  action:
+  - service: light.turn_on
+    target:
+      entity_id:
+      - light.eethoek
+      - light.lamp_lotte
+      - light.lamp_staand
+      - light.hanglamp_aquarium
+    data:
+      brightness_step_pct: 10
+  mode: single
+- id: '1634058614639'
+  alias: Remote 2 on
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: bdf93267d13d14c755cab7087a604486
+    type: click
+    subtype: 'on'
+    discovery_id: 0xcc86ecfffef53ae8 click_on
+  condition: []
+  action:
+  - service: light.turn_on
+    data:
+      brightness_step_pct: 25
+    target:
+      entity_id:
+      - light.led_keuken
+  mode: single
+- id: '1634058648659'
+  alias: Remote 2 off
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: bdf93267d13d14c755cab7087a604486
+    type: click
+    subtype: 'off'
+    discovery_id: 0xcc86ecfffef53ae8 click_off
+  condition: []
+  action:
+  - service: light.turn_on
+    data:
+      brightness_step_pct: -20
+    target:
+      area_id: keuken
+  mode: single
+- id: '1689274730613'
+  alias: MinderGas Upload
+  description: Upload gas meter to MinderGas.nl
+  trigger:
+  - platform: time
+    at: '23:58:00'
+  condition: []
+  action:
+  - data_template:
+      date: '{{ (as_timestamp(now())) | timestamp_custom("%Y-%m-%d", True)}}'
+      reading: '{{ states(''sensor.gas_consumption'') }}'
+    service: rest_command.mindergas_upload
+  mode: single
+- id: '1715847311143'
+  alias: Remote Overkapping
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - update.0x60b647fffecf0a8b
+  condition: []
+  action:
+  - service: light.turn_on
+    target:
+      entity_id:
+      - light.overkapping_2
+    data:
+      brightness_step_pct: 10
+  mode: single

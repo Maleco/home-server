@@ -9,3 +9,22 @@ frontend:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+
+rest_command:
+  mindergas_upload:
+   url: 'https://www.mindergas.nl/api/meter_readings'     
+   method: POST
+   headers: 
+     content-type: application/json
+     AUTH-TOKEN: !secret mindergas_api_token
+   payload: '{ "date": "{{date}}", "reading": "{{reading}}" }'  
+
+camera:
+        - platform: xiaomi_cloud_map_extractor
+          host: 192.168.2.6
+          token: 47526c4a43596c524d677571647a5252
+          username: mlc.withagen@gmail.com
+          password: CivnNgJamB78kENF
+          draw: ['all']
+          attributes:
+                  - calibration_points 

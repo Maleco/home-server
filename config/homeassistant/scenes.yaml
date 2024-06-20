@@ -1,0 +1,149 @@
+- id: '1615926924290'
+  name: Spotify Luisteren
+  entities:
+    media_player.denon_avr_x2100w:
+      source_list:
+      - AUX1
+      - AUX2
+      - Blu-ray
+      - Bluetooth
+      - CBL/SAT
+      - CD
+      - DVD
+      - Favorites
+      - Flickr
+      - Game
+      - Internet Radio
+      - Media Player
+      - Media Server
+      - Online Music
+      - Spotify
+      - TV Audio
+      - Tuner
+      - iPod/USB
+      sound_mode_list:
+      - MUSIC
+      - MOVIE
+      - GAME
+      - AUTO
+      - STANDARD
+      - VIRTUAL
+      - MATRIX
+      - ROCK ARENA
+      - JAZZ CLUB
+      - VIDEO GAME
+      - MONO MOVIE
+      - DIRECT
+      - PURE DIRECT
+      - DOLBY DIGITAL
+      - DTS SURROUND
+      - AURO3D
+      - AURO2DSURR
+      - MCH STEREO
+      - STEREO
+      - ALL ZONE STEREO
+      volume_level: 0.4
+      is_volume_muted: false
+      media_content_type: channel
+      media_title: CBL/SAT
+      source: CBL/SAT
+      sound_mode: ALL ZONE STEREO
+      sound_mode_raw: All Zone Stereo
+      device_class: receiver
+      friendly_name: Denon AVR-X2100W
+      supported_features: 69004
+      state: 'on'
+    media_player.shield_2:
+      assumed_state: true
+      device_class: tv
+      friendly_name: SHIELD
+      supported_features: 22457
+      app_id: ''
+      app_name: ''
+      state: 'on'
+    remote.shield:
+      friendly_name: SHIELD
+      supported_features: 4
+      current_activity: ''
+      state: 'on'
+  metadata: {}
+- id: '1615927093946'
+  name: TV Kijken
+  entities:
+    media_player.denon_avr_x2100w:
+      source_list:
+      - AUX1
+      - AUX2
+      - Blu-ray
+      - Bluetooth
+      - CBL/SAT
+      - CD
+      - DVD
+      - Favorites
+      - Flickr
+      - Game
+      - Internet Radio
+      - Media Player
+      - Media Server
+      - Online Music
+      - Spotify
+      - TV Audio
+      - Tuner
+      - iPod/USB
+      sound_mode_list:
+      - MUSIC
+      - MOVIE
+      - GAME
+      - AUTO
+      - STANDARD
+      - VIRTUAL
+      - MATRIX
+      - ROCK ARENA
+      - JAZZ CLUB
+      - VIDEO GAME
+      - MONO MOVIE
+      - DIRECT
+      - PURE DIRECT
+      - DOLBY DIGITAL
+      - DTS SURROUND
+      - AURO3D
+      - MCH STEREO
+      - STEREO
+      - ALL ZONE STEREO
+      volume_level: 0.5
+      is_volume_muted: false
+      media_content_type: channel
+      media_title: CBL/SAT
+      source: CBL/SAT
+      sound_mode: DOLBY DIGITAL
+      sound_mode_raw: Dolby Digital +
+      friendly_name: Denon AVR-X2100W
+      supported_features: 69004
+      state: 'on'
+    media_player.denon_avr_x2100w_zone2:
+      source_list:
+      - AUX1
+      - AUX2
+      - Blu-ray
+      - Bluetooth
+      - CBL/SAT
+      - CD
+      - DVD
+      - Favorites
+      - Flickr
+      - Game
+      - Internet Radio
+      - Media Player
+      - Media Server
+      - Online Music
+      - Source of main zone
+      - TV Audio
+      - Tuner
+      - iPod/USB
+      friendly_name: Denon AVR-X2100W Zone2
+      supported_features: 20413
+      state: 'off'
+    switch.tv_hoek:
+      friendly_name: TV Hoek
+      state: 'on'
+  icon: hass:television

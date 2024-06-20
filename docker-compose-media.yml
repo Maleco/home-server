@@ -12,8 +12,7 @@ services:
       - type: bind
         source: config/sonarr
         target: /config
-      - /media/external/TV:/tv
-      - /media/external/Downloads:/downloads
+      - /media/external/data/:/data
     ports:
       - 8989:8989
     restart: unless-stopped
@@ -31,13 +30,70 @@ services:
       - type: bind
         source: config/radarr
         target: /config
-      - /media/external/Movies:/movies
-      - /media/external/Downloads:/downloads
+      - /media/external/data/:/data
     ports:
       - 7878:7878
     restart: unless-stopped
     profiles:
       - media
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - type: bind
+        source: config/readarr
+        target: /config
+      - /media/external/data/:/data
+    profiles:
+      - media
+    ports:
+      - 8787:8787
+    restart: unless-stopped
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    security_opt:
+      - seccomp:unconfined #optional
+    volumes:
+      - type: bind
+        source: config/calibre
+        target: /config
+      - /media/external/data/:/data
+    profiles:
+      - media
+    ports:
+      - 9080:8080
+      - 9181:8181
+      - 9081:8081
+    restart: unless-stopped
+  calibre-web:
+    image: ghcr.io/linuxserver/calibre-web
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - type: bind
+        source: config/calibre-web
+        target: /config
+      - /media/external/data/:/data
+    restart: unless-stopped
+    profiles:
+      - media
+    depends_on:
+      - calibre
+    ports:
+      - 8083:8083
+
 
   nzbget:
     image: lscr.io/linuxserver/nzbget
@@ -50,7 +106,7 @@ services:
       - type: bind
         source: config/nzbget
         target: /config
-      - /media/external/Downloads:/downloads
+      - /media/external/data/usenet:/data/usenet:rw
 
     ports:
       - 6789:6789

@@ -39,6 +39,8 @@ services:
         source: config/pihole/etc-dnsmasq.d
         target: /etc/dnsmasq.d
     #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    profiles:
+      - infra
 
   omada:
     container_name: omada
@@ -112,6 +114,8 @@ services:
     profiles:
       - domotica
     privileged: true
+    ports:
+      - 8124:8124
     restart: unless-stopped
     volumes:
       - ./config/zigbee2mqtt:/app/data
