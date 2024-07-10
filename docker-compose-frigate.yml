@@ -24,5 +24,9 @@ services:
       - "8555:8555/udp" # WebRTC over udp
     environment:
       FRIGATE_RTSP_PASSWORD: "password"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frigate.rule=Host(`frigate.lan`)"
+      - "traefik.http.routers.frigate.entrypoints=web"
 volumes:
   frigate-storage:

@@ -1,59 +1,13 @@
-version: "3"
-
 include:
   - docker-compose-frigate.yml
   - docker-compose-media.yml
+  - docker-compose-infra.yml
 
 services:
-  portainer:
-    container_name: portainer
-    image: portainer/portainer-ce:latest
-    ports:
-      - 9000:9000
-      - 9443:9443
-    volumes:
-      - portainer-data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    profiles:
-      - infra
-
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      #      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
-      - "80:80/tcp"
-    environment:
-      TZ: 'Europe/Amsterdam'
-      # WEBPASSWORD: 'set a secure password here or it will be random'
-    # Volumes store your data between container upgrades
-    volumes:
-      - type: bind
-        source: config/pihole/etc-pihole
-        target: /etc/pihole
-      - type: bind
-        source: config/pihole/etc-dnsmasq.d
-        target: /etc/dnsmasq.d
-    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
-    profiles:
-      - infra
-
-  omada:
-    container_name: omada
-    image: mbentley/omada-controller:latest
-    profiles:
-      - network
-
-
-
   home-assistant:
     container_name: home-assistant
     image: homeassistant/home-assistant:stable
-    restart: unless-stopped
+    restart: unless-stopped 
     profiles:
       - domotica
     privileged: true
@@ -68,6 +22,11 @@ services:
       - influxdb
       - mosquitto
       - zigbee2mqtt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.rule=Host(`ha.lan`)"
+      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
+      - "traefik.http.routers.homeassistant.entrypoints=web"
 
   influxdb:
     container_name: influxdb
@@ -124,9 +83,15 @@ services:
       - "/dev/ttyACM0:/dev/ttyACM0:rwm"
     environment:
       TZ: Europa/Amsterdam
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zigbee.rule=Host(`zigbee.lan`)"
+      - "traefik.http.routers.zigbee.entrypoints=web"
+      - "traefik.http.services.zigbee.loadbalancer.server.port=8124"
 
 # Persistent data volumes
 volumes:
+  proxy-manager-data:
   portainer-data:
   influxdb-data:
   mosquitto-data:
