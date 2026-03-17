@@ -13,15 +13,19 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.web.address=:80"
+      - "--entryPoints.web.http.redirections.entryPoint.to=secureweb"
+      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
       - "--entryPoints.secureweb.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=your-email@example.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/traefik-letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    profiles:
-      - infra
+      - "./traefik-letsencrypt:/traefik-letsencrypt"
 
   portainer:
     container_name: portainer
@@ -30,19 +34,17 @@ services:
       - infra
       - management
     ports:
-      - 9000:9000
       - 9443:9443
     volumes:
       - portainer-data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-    profiles:
-      - infra
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.portainer.rule=Host(`portainer.lan`)"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-      - "traefik.http.routers.portainer.entrypoints=web"
+      - "traefik.http.routers.portainer.entrypoints=web,secureweb"
+      - "traefik.http.routers.portainer.tls=true"
 
   dashy:
     container_name: Dashy    
@@ -68,7 +70,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dashy.rule=Host(`dashy.lan`)"
-      - "traefik.http.routers.dashy.entrypoints=web"
+      - "traefik.http.routers.dashy.entrypoints=web,secureweb"
+      - "traefik.http.routers.dashy.tls=true"
       
   pihole:
     container_name: pihole
@@ -94,14 +97,11 @@ services:
     profiles:
       - infra
     labels:
-      - "traefik.frontend.rule=HostRegexp:pihole.homedomain.lan,{catchall:.*}"
-      - "traefik.frontend.priority=1"
-      - "traefik.backend=pihole"
-      - "traefik.port=80"
       - "traefik.enable=true"
       - "traefik.http.routers.pihole.rule=Host(`pihole.lan`)"
-      - "traefik.http.routers.pihole.entrypoints=web"
-      - "traefik.http.services.pihole.loadbalancer.server.port=8099"
+      - "traefik.http.routers.pihole.entrypoints=web,secureweb"
+      - "traefik.http.routers.pihole.tls=true"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80"
 
   omada:
     container_name: omada
@@ -114,7 +114,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.omada.rule=Host(`omada.lan`)"
       - "traefik.http.services.omada.loadbalancer.server.port=8043"
-      - "traefik.http.routers.omada.entrypoints=web"
+      - "traefik.http.routers.omada.entrypoints=web,secureweb"
+      - "traefik.http.routers.omada.tls=true"
 
 # Persistent data volumes
 volumes:
