@@ -9,8 +9,14 @@ services:
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower
+    profiles:
+      - system
+      - updates
     command:
       - --cleanup=true
+      - --interval=86400
+      - --enable-lifecycle-hooks
+      - --label-enable
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
