@@ -2,92 +2,19 @@ include:
   - docker-compose-frigate.yml
   - docker-compose-media.yml
   - docker-compose-infra.yml
+  - docker-compose-arr.yml
+  - docker-compose-domotica.yml
 
 services:
-  home-assistant:
-    container_name: home-assistant
-    image: homeassistant/home-assistant:stable
-    restart: unless-stopped 
-    profiles:
-      - domotica
-    privileged: true
-    network_mode: host
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower
+    command:
+      - --cleanup=true
+    restart: always
     volumes:
-      - type: bind
-        source: config/homeassistant
-        target: /config
-      - /etc/localtime:/etc/localtime:ro
-      - /run/dbus:/run/dbus:ro
-    depends_on:
-      - influxdb
-      - mosquitto
-      - zigbee2mqtt
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.homeassistant.rule=Host(`ha.lan`)"
-      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-      - "traefik.http.routers.homeassistant.entrypoints=web"
+      - /var/run/docker.sock:/var/run/docker.sock
 
-  influxdb:
-    container_name: influxdb
-    image: influxdb
-    profiles:
-      - domotica
-    restart: unless-stopped
-    ports:
-      - "8086:8086/tcp"   # So we can access the WebUI
-    environment:
-      - TZ=Europe/Brussels
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USER}
-      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
-      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
-      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
-    volumes:
-      - influxdb-data:/var/lib/influxdb2
-      - type: bind
-        source: config/influxdb
-        target: /etc/influxdb2
-
-  mosquitto:
-    container_name: mosquitto
-    image: eclipse-mosquitto
-    restart: unless-stopped
-    profiles:
-      - domotica
-    ports:
-      - "1883:1883/tcp"
-    environment:
-      - TZ=Europe/Brussels
-    volumes:
-      - type: bind
-        source: config/mosquitto
-        target: /mosquitto/config
-      - mosquitto-data:/mosquitto/data
-    stdin_open: true
-    tty: true
-
-  zigbee2mqtt:
-    image: koenkk/zigbee2mqtt:latest
-    container_name: zigbee2mqtt
-    profiles:
-      - domotica
-    privileged: true
-    ports:
-      - 8124:8124
-    restart: unless-stopped
-    volumes:
-      - ./config/zigbee2mqtt:/app/data
-      - /run/udev:/run/udev:ro
-    devices:
-      - "/dev/ttyACM0:/dev/ttyACM0:rwm"
-    environment:
-      TZ: Europa/Amsterdam
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.zigbee.rule=Host(`zigbee.lan`)"
-      - "traefik.http.routers.zigbee.entrypoints=web"
-      - "traefik.http.services.zigbee.loadbalancer.server.port=8124"
 
 # Persistent data volumes
 volumes:

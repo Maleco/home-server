@@ -3,6 +3,10 @@ services:
     image: "traefik:v3.0"
     container_name: "traefik"
     restart: unless-stopped
+    profiles:
+      - infra
+      - proxy
+      - core
     command:
       - "--log.level=DEBUG"
       - "--api.insecure=true"
@@ -22,6 +26,9 @@ services:
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest
+    profiles:
+      - infra
+      - management
     ports:
       - 9000:9000
       - 9443:9443
@@ -40,6 +47,9 @@ services:
   dashy:
     container_name: Dashy    
     image: lissy93/dashy    
+    profiles:
+      - infra
+      - dashboard
     # Pass in your config file below, by specifying the path on your host machine    
     volumes:
        - dashy-config:/app/user-data
@@ -75,10 +85,10 @@ services:
     # Volumes store your data between container upgrades
     volumes:
       - type: bind
-        source: config/pihole/etc-pihole
+        source: config/network/pihole/etc-pihole
         target: /etc/pihole
       - type: bind
-        source: config/pihole/etc-dnsmasq.d
+        source: config/network/pihole/etc-dnsmasq.d
         target: /etc/dnsmasq.d
     #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
     profiles:
@@ -98,6 +108,8 @@ services:
     image: mbentley/omada-controller:latest
     profiles:
       - network
+    ports:
+      - 8043:8043    
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.omada.rule=Host(`omada.lan`)"

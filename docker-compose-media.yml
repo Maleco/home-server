@@ -1,68 +1,12 @@
 services:
-  sonarr:
-    image: lscr.io/linuxserver/sonarr
-    container_name: sonarr
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/London
-    volumes:
-      - type: bind
-        source: config/sonarr
-        target: /config
-      - /media/external/data/:/data
-    ports:
-      - 8989:8989
-    restart: unless-stopped
-    profiles:
-      - media
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.lan`)"
-      - "traefik.http.routers.sonarr.entrypoints=web"
 
-  radarr:
-    image: lscr.io/linuxserver/radarr
-    container_name: radarr
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/London
-    volumes:
-      - type: bind
-        source: config/radarr
-        target: /config
-      - /media/external/data/:/data
-    ports:
-      - 7878:7878
-    restart: unless-stopped
-    profiles:
-      - media
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.radarr.rule=Host(`radarr.lan`)"
-      - "traefik.http.routers.radarr.entrypoints=web"
 
-  readarr:
-    image: lscr.io/linuxserver/readarr:develop
-    container_name: readarr
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/London
-    volumes:
-      - type: bind
-        source: config/readarr
-        target: /config
-      - /media/external/data/:/data
-    profiles:
-      - media
-    ports:
-      - 8787:8787
-    restart: unless-stopped
   calibre:
     image: lscr.io/linuxserver/calibre:latest
     container_name: calibre
+    profiles:
+      - media
+      - books
     environment:
       - PUID=1000
       - PGID=1000
@@ -71,9 +15,10 @@ services:
       - seccomp:unconfined #optional
     volumes:
       - type: bind
-        source: config/calibre
+        source: config/media/calibre
         target: /config
-      - /media/external/data/:/data
+      - ${MEDIA_PATH_1}:/data
+      - ${MEDIA_PATH_2}/usenet/:/usenet2
     profiles:
       - media
     ports:
@@ -81,18 +26,22 @@ services:
       - 9181:8181
       - 9081:8081
     restart: unless-stopped
+
   calibre-web:
     image: ghcr.io/linuxserver/calibre-web
     container_name: calibre-web
+    profiles:
+      - media
+      - books
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
     volumes:
       - type: bind
-        source: config/calibre-web
+        source: config/media/calibre-web
         target: /config
-      - /media/external/data/:/data
+      - ${MEDIA_PATH_1}:/data
     restart: unless-stopped
     profiles:
       - media
@@ -102,24 +51,52 @@ services:
       - 8083:8083
 
 
-  nzbget:
-    image: lscr.io/linuxserver/nzbget
-    container_name: nzbget
+
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    profiles:
+      - media
+      - streaming
+    network_mode: host
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/London
+      - TZ=Europe/Amsterdam
+      - VERSION=docker
     volumes:
       - type: bind
-        source: config/nzbget
+        source: config/media/plex
         target: /config
-      - /media/external/data/usenet:/data/usenet:rw
-    ports:
-      - 6789:6789
+      - ${MEDIA_PATH_1}/media/tv:/tv
+      - ${MEDIA_PATH_1}/media/movies:/movies
+      - ${MEDIA_PATH_2}/media/tv:/tv2
+      - ${MEDIA_PATH_2}/media/movies:/movies2
+      - ${MEDIA_PATH_2}/media/pictures:/pictures2
     restart: unless-stopped
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
     profiles:
       - media
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nzbget.rule=Host(`nzbget.lan`)"
-      - "traefik.http.routers.nzbget.entrypoints=web"
+      - streaming
+    user: 1000:1000
+    network_mode: 'host'
+    volumes:
+      - type: bind
+        source: config/media/jellyfin
+        target: /config
+      - jellyfin-cache:/cache
+      - type: bind
+        source: ${MEDIA_PATH_1}/media
+        target: /media
+        read_only: true
+      - type: bind
+        source: ${MEDIA_PATH_2}/media
+        target: /media2
+        read_only: true
+    restart: 'unless-stopped'
+
+volumes:
+  jellyfin-cache:

@@ -1,0 +1,176 @@
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - type: bind
+        source: config/arr/sonarr
+        target: /config
+      - ${MEDIA_PATH_1}:/data
+      - /media/external2/media:/external2/media
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    profiles:
+      - media
+      - arr
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "X-Api-Key:e806afe1375a406aab807bd06d7a1ace", "http://localhost:8989/api/v3/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.lan`)"
+      - "traefik.http.routers.sonarr.entrypoints=web"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-Europe/Brussels}
+    volumes:
+      - type: bind
+        source: config/arr/radarr
+        target: /config
+      - ${MEDIA_PATH_1}:/data
+      - /media/external2/media:/external2/media
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+    profiles:
+      - media
+      - arr
+      - media-management
+      - automation
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "X-Api-Key:dcc0d1b051c64efaa01a6faf27b313b5", "http://localhost:7878/api/v3/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.lan`)"
+      - "traefik.http.routers.radarr.entrypoints=web"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-Europe/Brussels}
+    volumes:
+      - type: bind
+        source: config/arr/bazarr
+        target: /config
+      - ${MEDIA_PATH_1}:/data
+      - ${MEDIA_PATH_2}:/external2
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+    profiles:
+      - media
+      - arr
+      - media-management
+      - automation
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "X-Api-Key:01e67f153bea38ca1946ec189ff83990", "http://localhost:6767/api/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-Europe/Brussels}
+    volumes:
+      - type: bind
+        source: config/arr/readarr
+        target: /config
+      - ${MEDIA_PATH_1}:/data
+      - /media/external2/media:/external2/media
+    ports:
+      - 8787:8787
+    restart: unless-stopped
+    profiles:
+      - media
+      - arr
+      - media-management
+      - automation
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "X-Api-Key:ce28276fc0df415e8f1a22c4a2be3bf4", "http://localhost:8787/api/v1/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nzbget:
+    image: lscr.io/linuxserver/nzbget
+    container_name: nzbget
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-Europe/Brussels}
+    volumes:
+      - type: bind
+        source: config/media/nzbget
+        target: /config
+      - ${MEDIA_PATH_1}/usenet:/data/usenet:rw
+      - /media/external2/media/usenet:/external2/usenet:rw
+      - /media/external2/media:/external2/media:rw
+    ports:
+      - 6789:6789
+    restart: unless-stopped
+    profiles:
+      - media
+      - arr
+      - downloaders
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nzbget.rule=Host(`nzbget.lan`)"
+      - "traefik.http.routers.nzbget.entrypoints=web"
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-Europe/Brussels}
+      - WEBUI_PORT=9090
+      - TORRENTING_PORT=6881
+    volumes:
+      - type: bind
+        source: config/media/qbittorrent
+        target: /config
+      - /media/external2/media/torrent:/external2/torrent:rw
+      - /media/external2/media:/external2/media:rw
+    ports:
+      - 9090:9090
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+    profiles:
+      - media
+      - arr
+      - downloaders
+
+# Persistent data volumes
+volumes:
+  sonarr-data:
+  radarr-data:
+  bazarr-data:
+  readarr-data:
+  nzbget-data:
+  qbittorrent-data:
